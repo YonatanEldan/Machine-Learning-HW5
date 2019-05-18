@@ -140,16 +140,17 @@ def compare_svms(data_array,
     # split the data and the labels arrays into k subarrays based on the folds_count param
     folds_array, labels_folds_array = array_split(data_array, folds_count), array_split(labels_array, folds_count)
 
+    # generates a SVM based in the default parameters
+    clf = SVC(C = SVM_DEFAULT_C, gamma = SVM_DEFAULT_GAMMA, degree = SVM_DEFAULT_DEGREE)
     for i in range(len(kernels_list)):
-    # for each kind of kernel we use a diffrent kind of paameter
-        if(kernels_list[i]=='poly'):
-            clf = SVC(C = SVM_DEFAULT_C, gamma = SVM_DEFAULT_GAMMA, degree = kernel_params[i].get('degree'), kernel=kernels_list[i])
-        elif(kernels_list[i]=='rbf'):
-            clf = SVC(C = SVM_DEFAULT_C, gamma = kernel_params[i].get('gamma'), degree = SVM_DEFAULT_DEGREE, kernel=kernels_list[i])
-        else:
-            clf = SVC(C = SVM_DEFAULT_C, gamma = SVM_DEFAULT_GAMMA, degree = SVM_DEFAULT_DEGREE, kernel=kernels_list[i])
-    
         
+        #reset to the defult parameters
+        clf.set_params(**{'C' : SVM_DEFAULT_C, 'gamma' : SVM_DEFAULT_GAMMA, 'degree' : SVM_DEFAULT_DEGREE, 'kernel' :kernels_list[i]})
+
+        # change the specific parameter based on kernel_params 
+        clf.set_params(**kernel_params[i])
+
+        #get the results using get_k_fold_stats function and append to the arrays
         tempTpr, tempFpr, tempAccuracy = get_k_fold_stats(folds_array, labels_folds_array, clf)
         tpr.append(tempTpr)
         fpr.append(tempFpr)
@@ -196,7 +197,7 @@ def plot_roc_curve_with_score(df, alpha_slope=1.5):
     plt.title('ROC plot')
     plt.plot([0,1],linearP([0,1]),'-r')
     plt.plot(x,curveP(x),'--b')
-    plt.scatter(x, y, alpha=0.5)
+    plt.plot(x, y, 'ro')
     plt.xlim([0, 1])
     plt.ylim([0, 1])
     plt.ylabel('True Positive Rate')
