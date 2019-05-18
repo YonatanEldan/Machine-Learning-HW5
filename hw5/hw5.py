@@ -72,15 +72,6 @@ def get_stats(prediction, labels):
     fpr /= length - count_nonzero(labels)
     accuracy /= length
 
-
-    ###########################################################################
-    # TODO: Implement the function                                            #
-    ###########################################################################
-    pass
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
-
     return tpr, fpr, accuracy
 
 
@@ -200,10 +191,11 @@ def plot_roc_curve_with_score(df, alpha_slope=1.5):
     y = df.tpr.tolist()
 
     b = -1 * (alpha_slope*(x[get_kernel_with_highest_score()])) + y[get_kernel_with_highest_score()]
-    p = poly1d([alpha_slope,b])
-
+    linearP = poly1d([alpha_slope,b])
+    curveP = polyfit(x,y,3)
     plt.title('ROC plot')
-    plt.plot([0,1],p([0,1]),'-r')
+    plt.plot([0,1],linearP([0,1]),'-r')
+    plt.plot(x,curveP(x),'--b')
     plt.scatter(x, y, alpha=0.5)
     plt.xlim([0, 1])
     plt.ylim([0, 1])
