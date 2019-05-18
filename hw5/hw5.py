@@ -199,14 +199,17 @@ def plot_roc_curve_with_score(df, alpha_slope=1.5):
     x = df.fpr.tolist()
     y = df.tpr.tolist()
 
-    ###########################################################################
-    # TODO: Implement the function                                            #
-    ###########################################################################
-    pass
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
+    b = -1 * (alpha_slope*(x[get_kernel_with_highest_score()])) + y[get_kernel_with_highest_score()]
+    p = poly1d([alpha_slope,b])
 
+    plt.title('ROC plot')
+    plt.plot([0,1],p([0,1]),'-r')
+    plt.scatter(x, y, alpha=0.5)
+    plt.xlim([0, 1])
+    plt.ylim([0, 1])
+    plt.ylabel('True Positive Rate')
+    plt.xlabel('False Positive Rate')
+    plt.show()
 
 def evaluate_c_param(data_array, labels_array, folds_count):
     """
@@ -220,7 +223,40 @@ def evaluate_c_param(data_array, labels_array, folds_count):
     ###########################################################################
     # TODO: Implement the function                                            #
     ###########################################################################
-    pass
+    
+    res['kernel'] = ['poly']*18
+    res['kernel_params'] = [{'degree': 2}]*18
+    res['tpr'] = None
+    res['fpr'] = None
+    res['accuracy'] = None
+    
+    tpr = []
+    fpr = []
+    accuracy = []
+
+    # split the data and the labels arrays into k subarrays based on the folds_count param
+    folds_array, labels_folds_array = array_split(data_array, folds_count), array_split(labels_array, folds_count) 
+
+
+    #calculate the stats for each permutation of C 
+    for i in [1,0,-1,-1,-3,-4]:
+        for j in [1,2,3]:
+            cValue = (j/3)*(10 ** i)
+            clf = SVC(C = cValue, gamma = SVM_DEFAULT_GAMMA, degree = 2, kernel = 'poly')
+            tempTpr, tempFpr, tempAccuracy = get_k_fold_stats(folds_array, labels_folds_array, clf)
+            
+            
+            tpr.append(tempTpr)
+            fpr.append(tempFpr)
+            accuracy.append(tempAccuracy)
+            tpr.append(tempTpr)
+            fpr.append(tempFpr)
+            accuracy.append(tempAccuracy)
+
+    res['tpr'] = tpr
+    res['fpr'] = fpr
+    res['accuracy'] = accuracy
+
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
