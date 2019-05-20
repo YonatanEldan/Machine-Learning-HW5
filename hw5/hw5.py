@@ -193,13 +193,13 @@ def plot_roc_curve_with_score(df, alpha_slope=1.5):
 
     b = -1 * (alpha_slope*(x[get_kernel_with_highest_score()])) + y[get_kernel_with_highest_score()]
     linearP = poly1d([alpha_slope,b])
-    curveP = polyfit(x,y,3)
+    #curveP = poly1d(polyfit(x,y,3))
     plt.title('ROC plot')
-    plt.plot([0,1],linearP([0,1]),'-r')
-    plt.plot(x,curveP(x),'--b')
+    plt.plot([0,1],linearP([0,1]),'-b')
+    #plt.plot(x,curveP(x),'--b')
     plt.plot(x, y, 'ro')
-    plt.xlim([0, 1])
-    plt.ylim([0, 1])
+    plt.xlim([0, 1.1])
+    plt.ylim([0, 1.1])
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
     plt.show()
@@ -216,39 +216,16 @@ def evaluate_c_param(data_array, labels_array, folds_count):
     ###########################################################################
     # TODO: Implement the function                                            #
     ###########################################################################
-    
-    res['kernel'] = ['poly']*18
-    res['kernel_params'] = [{'degree': 2}]*18
-    res['tpr'] = None
-    res['fpr'] = None
-    res['accuracy'] = None
-    
-    tpr = []
-    fpr = []
-    accuracy = []
-
-    # split the data and the labels arrays into k subarrays based on the folds_count param
-    folds_array, labels_folds_array = array_split(data_array, folds_count), array_split(labels_array, folds_count) 
-
-
-    #calculate the stats for each permutation of C 
+    kernels_list = ['poly']*18
+    cValues = []
+    # creates a list of 18 dictionaries of type : 'C' : valueOfC
     for i in [1,0,-1,-1,-3,-4]:
         for j in [1,2,3]:
-            cValue = (j/3)*(10 ** i)
-            clf = SVC(C = cValue, gamma = SVM_DEFAULT_GAMMA, degree = 2, kernel = 'poly')
-            tempTpr, tempFpr, tempAccuracy = get_k_fold_stats(folds_array, labels_folds_array, clf)
-            
-            
-            tpr.append(tempTpr)
-            fpr.append(tempFpr)
-            accuracy.append(tempAccuracy)
-            tpr.append(tempTpr)
-            fpr.append(tempFpr)
-            accuracy.append(tempAccuracy)
+            cTemp = ((j/3)*(10 ** i))
+            cValues.append({'C' : cTemp})
+    print(cValues)
+    res = compare_svms(data_array, labels_array, folds_count, kernels_list, cValues)
 
-    res['tpr'] = tpr
-    res['fpr'] = fpr
-    res['accuracy'] = accuracy
 
     ###########################################################################
     #                             END OF YOUR CODE                            #
@@ -270,10 +247,11 @@ def get_test_set_performance(train_data, train_labels, test_data, test_labels):
              fpr: fpr on the test dataset
              accuracy: accuracy of the model on the test dataset
     """
-
-    kernel_type = ''
-    kernel_params = None
-    clf = SVC(class_weight='balanced')  # TODO: set the right kernel
+    kernel_type = 'poly'
+    kernel_params = {'class_weight' : 'balanced' ,'C' : SVM_DEFAULT_C, 'gamma' : SVM_DEFAULT_GAMMA, 'degree' : 2, 'kernel' : kernel_type}
+    clf = SVC(gamma = 'auto')
+    clf.set_params(**kernel_params)
+  # TODO: set the right kernel
     tpr = 0.0
     fpr = 0.0
     accuracy = 0.0
@@ -281,7 +259,9 @@ def get_test_set_performance(train_data, train_labels, test_data, test_labels):
     ###########################################################################
     # TODO: Implement the function                                            #
     ###########################################################################
-    pass
+    clf.fit(train_data, train_labels)
+    prediction = clf.predict(test_data)
+    tpr, fpr, accuracy = get_stats(prediction, test_labels)
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
