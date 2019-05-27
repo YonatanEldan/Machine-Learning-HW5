@@ -166,20 +166,20 @@ def compare_svms(data_array,
     return svm_df
 
 
-def get_most_accurate_kernel():
+def get_most_accurate_kernel(accuray_data):
     """
     :return: integer representing the row number of the most accurate kernel
     """
-    best_kernel = 5
-    return best_kernel
+    myList = list(accuray_data)
+    return myList.index(max(myList))
 
 
-def get_kernel_with_highest_score():
+def get_kernel_with_highest_score(score_data):
     """
     :return: integer representing the row number of the kernel with the highest score
     """
-    best_kernel = 5
-    return best_kernel
+    myList = list(score_data)
+    return myList.index(max(myList))
 
 
 def plot_roc_curve_with_score(df, alpha_slope=1.5):
@@ -191,7 +191,7 @@ def plot_roc_curve_with_score(df, alpha_slope=1.5):
     x = df.fpr.tolist()
     y = df.tpr.tolist()
     print(y)
-    b = -1 * (alpha_slope*(x[get_kernel_with_highest_score()])) + y[get_kernel_with_highest_score()]
+    b = -1 * (alpha_slope*(x[get_kernel_with_highest_score(df['score'])])) + y[get_kernel_with_highest_score(df['score'])]
     linearP = poly1d([alpha_slope,b])
     #curveP = poly1d(polyfit(x,y,3))
     plt.title('ROC plot')
@@ -204,7 +204,7 @@ def plot_roc_curve_with_score(df, alpha_slope=1.5):
     plt.xlabel('False Positive Rate')
     plt.show()
 
-def evaluate_c_param(data_array, labels_array, folds_count):
+def evaluate_c_param(data_array, labels_array, folds_count, best_kerenel_params):
     """
     :param data_array: a numpy array with the features dataset
     :param labels_array: a numpy array with the labels
@@ -217,14 +217,17 @@ def evaluate_c_param(data_array, labels_array, folds_count):
     # TODO: Implement the function                                            #
     ###########################################################################
     kernels_list = ['poly']*18
-    cValues = []
+    parameters = []
     # creates a list of 18 dictionaries of type : 'C' : valueOfC
     for i in [1,0,-1,-1,-3,-4]:
         for j in [1,2,3]:
+            tempParam = best_kerenel_params.copy()
             cTemp = ((j/3)*(10 ** i))
-            cValues.append({'C' : cTemp})
-    print(cValues)
-    res = compare_svms(data_array, labels_array, folds_count, kernels_list, cValues)
+            tempParam['C'] = cTemp
+            parameters.append(tempParam)
+            
+    print(parameters)
+    res = compare_svms(data_array, labels_array, folds_count, kernels_list, parameters)
 
 
     ###########################################################################
