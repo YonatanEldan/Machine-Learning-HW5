@@ -170,7 +170,7 @@ def get_most_accurate_kernel():
     """
     :return: integer representing the row number of the most accurate kernel
     """
-    best_kernel = 0
+    best_kernel = 5
     return best_kernel
 
 
@@ -178,7 +178,7 @@ def get_kernel_with_highest_score():
     """
     :return: integer representing the row number of the kernel with the highest score
     """
-    best_kernel = 0
+    best_kernel = 5
     return best_kernel
 
 
@@ -190,7 +190,7 @@ def plot_roc_curve_with_score(df, alpha_slope=1.5):
     """
     x = df.fpr.tolist()
     y = df.tpr.tolist()
-
+    print(y)
     b = -1 * (alpha_slope*(x[get_kernel_with_highest_score()])) + y[get_kernel_with_highest_score()]
     linearP = poly1d([alpha_slope,b])
     #curveP = poly1d(polyfit(x,y,3))
@@ -248,7 +248,7 @@ def get_test_set_performance(train_data, train_labels, test_data, test_labels):
              accuracy: accuracy of the model on the test dataset
     """
     kernel_type = 'poly'
-    kernel_params = {'class_weight' : 'balanced' ,'C' : SVM_DEFAULT_C, 'gamma' : SVM_DEFAULT_GAMMA, 'degree' : 2, 'kernel' : kernel_type}
+    kernel_params = {'class_weight' : 'balanced' ,'C' : 10.0, 'gamma' : SVM_DEFAULT_GAMMA, 'degree' : 2, 'kernel' : kernel_type}
     clf = SVC(gamma = 'auto')
     clf.set_params(**kernel_params)
   # TODO: set the right kernel
