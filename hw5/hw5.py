@@ -1,4 +1,4 @@
-from numpy import count_nonzero, logical_and, logical_or, concatenate, mean, array_split, poly1d, polyfit, array
+from numpy import count_nonzero, logical_and, logical_or, concatenate, mean, array_split, poly1d, polyfit, array, linspace
 from numpy.random import permutation
 import pandas as pd
 from sklearn.svm import SVC
@@ -190,18 +190,27 @@ def plot_roc_curve_with_score(df, alpha_slope=1.5):
     """
     x = df.fpr.tolist()
     y = df.tpr.tolist()
-    print(y)
-    b = -1 * (alpha_slope*(x[get_kernel_with_highest_score(df['score'])])) + y[get_kernel_with_highest_score(df['score'])]
-    linearP = poly1d([alpha_slope,b])
-    #curveP = poly1d(polyfit(x,y,3))
-    plt.title('ROC plot')
-    plt.plot([0,1],linearP([0,1]),'-b')
-    #plt.plot(x,curveP(x),'--b')
-    plt.plot(x, y, 'ro')
-    plt.xlim([0, 1.1])
-    plt.ylim([0, 1.1])
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
+    plt.title('ROC plot')
+    plt.xlim([0, 1.1])
+    plt.ylim([0, 1.1])
+
+    # calculating b using linar line equation
+    b = -1 * (alpha_slope*(x[get_kernel_with_highest_score(df['score'])])) + y[get_kernel_with_highest_score(df['score'])]
+    linearP = poly1d([alpha_slope,b])
+    # plotting the linear line and the scatter plot
+    plt.plot(x, y, 'ro',[0,1],linearP([0,1]),'-b')
+    
+    # adding (0, 0) and (1, 1) for plotting issues
+    x = concatenate(([0], x, [1]))
+    y = concatenate(([0], y, [1]))
+    #calculating the roc curve
+    z = polyfit(x, y, 3)
+    curveP = poly1d(z)
+    xp = linspace(0, 1, 100)
+    #plotting the roc curve
+    plt.plot(xp, curveP(xp), '-g')
     plt.show()
 
 def evaluate_c_param(data_array, labels_array, folds_count, best_kerenel_params):
@@ -236,7 +245,7 @@ def evaluate_c_param(data_array, labels_array, folds_count, best_kerenel_params)
     return res
 
 
-def get_test_set_performance(train_data, train_labels, test_data, test_labels):
+def get_test_set_performance(train_data, train_labels, test_data, test_labels, best_kerenel_params):
     """
     :param train_data: a numpy array with the features dataset - train
     :param train_labels: a numpy array with the labels - train
@@ -251,10 +260,8 @@ def get_test_set_performance(train_data, train_labels, test_data, test_labels):
              accuracy: accuracy of the model on the test dataset
     """
     kernel_type = 'poly'
-    kernel_params = {'class_weight' : 'balanced' ,'C' : 10.0, 'gamma' : SVM_DEFAULT_GAMMA, 'degree' : 2, 'kernel' : kernel_type}
     clf = SVC(gamma = 'auto')
-    clf.set_params(**kernel_params)
-  # TODO: set the right kernel
+    clf.set_params(**best_kerenel_params)
     tpr = 0.0
     fpr = 0.0
     accuracy = 0.0
@@ -269,4 +276,4 @@ def get_test_set_performance(train_data, train_labels, test_data, test_labels):
     #                             END OF YOUR CODE                            #
     ###########################################################################
 
-    return kernel_type, kernel_params, clf, tpr, fpr, accuracy
+    return kernel_type, best_kerenel_params, clf, tpr, fpr, accuracy
